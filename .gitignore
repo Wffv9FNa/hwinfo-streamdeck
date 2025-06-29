@@ -30,3 +30,6 @@ cmd/hwinfostreamdeckplugin/debug
 
 # dep cache (protoc)
 .cache/
+
+# Development scratch files
+dev/
