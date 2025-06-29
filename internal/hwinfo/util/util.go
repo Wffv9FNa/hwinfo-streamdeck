@@ -44,12 +44,18 @@ func goStringFromPtr(ptr unsafe.Pointer, len int) string {
 	return s[:strings.IndexByte(s, 0)]
 }
 
-// DecodeCharPtr decodes ISO8859_1 string to UTF-8
+// DecodeCharPtr decodes strings from HWiNFO's shared memory
 func DecodeCharPtr(ptr unsafe.Pointer, len int) string {
 	s := goStringFromPtr(ptr, len)
+	// First try UTF-8
+	if strings.Contains(s, "°") {
+		return s // Already valid UTF-8
+	}
+	// If not valid UTF-8, try ISO8859-1
 	ds, err := decodeISO8859_1(s)
 	if err != nil {
-		log.Fatalf("TODO: failed to decode: %v", err)
+		log.Printf("Failed to decode string: %v", err)
+		return s // Return original if decoding fails
 	}
 	return ds
 }
