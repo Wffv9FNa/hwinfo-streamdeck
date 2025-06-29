@@ -2,97 +2,124 @@
 
 ## Current Focus
 
-Improving build system and developer experience:
-- Added comprehensive build prerequisites check script
-- Enhanced documentation for Windows development setup
-- Streamlined Visual Studio toolchain detection
-- Fixed and improved Makefile targets
-- Added robust process management for builds
+Improving HWiNFO integration and stability:
+- Fixed shared memory access with retry mechanism
+- Added proper signature validation
+- Improved process management and monitoring
+- Enhanced error handling and logging
+- Added resource cleanup
+- Updated system patterns documentation
+- Fixed plugin stability issues
 
 ## Recent Changes
 
-1. Added `check-prerequisites.ps1`:
-   - Validates all required build dependencies
-   - Provides clear installation instructions
-   - Handles Visual Studio environment setup
-   - Checks HWiNFO configuration
+1. Fixed HWiNFO shared memory access:
+   - Added retry mechanism (5 retries with 1-second delays)
+   - Implemented proper signature validation
+   - Added "DEAD" signature detection
+   - Improved mutex handling
+   - Enhanced error messages
+   - Added debug logging
+   - Fixed resource cleanup
 
-2. Updated documentation:
-   - Expanded build prerequisites in `techContext.md`
-   - Added detailed environment setup steps
-   - Documented development tools and IDE support
+2. Improved plugin process management:
+   - Removed winpeg dependency
+   - Added auto-restart capability
+   - Improved error handling
+   - Added process monitoring
+   - Enhanced resource cleanup
+   - Fixed type errors with ProcessExitGroup
 
-3. Improved Makefile:
-   - Added standard `build` target (aliases to `plugin`)
-   - Removed external repository dependencies
-   - Added proper `.PHONY` declarations
-   - Added `clean` target
-   - Improved directory handling
-   - Made `release` depend on `build`
-   - Added automatic creation of necessary directories
-   - Added process management to prevent sharing violations
-   - Improved error handling for process termination
+3. Updated documentation:
+   - Added HWiNFO integration patterns
+   - Documented shared memory access patterns
+   - Added process management patterns
+   - Updated system patterns
+   - Added error handling patterns
+
+4. Enhanced error handling:
+   - Added detailed error messages
+   - Improved error context
+   - Added debug logging
+   - Better resource management
+   - Proper cleanup on errors
+
+## Current Issues
+
+1. User Experience:
+   - Need better UI feedback during initialization
+   - Configuration changes not reflected immediately
+   - Error messages could be more user-friendly
+   - No configuration persistence
+
+2. Build Process:
+   - Process termination could be more robust
+   - Some file operations may fail due to timing
+   - Visual Studio detection needs improvement
+   - HWiNFO verification not integrated with main build
 
 ## Next Steps
 
-1. Build System:
-   - Test build process with verified prerequisites
-   - Consider automating HWiNFO configuration check in build scripts
-   - Add CI pipeline configuration
-   - Consider adding process management to install-plugin.bat
+1. Integration:
+   - Add configuration persistence
+   - Improve UI feedback
+   - Add automatic configuration where possible
+   - Integrate verification into build process
 
 2. Documentation:
-   - Add troubleshooting guide for common build issues
-   - Document release process and versioning
+   - Add troubleshooting guide for common issues
+   - Document configuration requirements
+   - Update build documentation
    - Add development workflow examples
-   - Document process management in build system
+
+3. Testing:
+   - Add automated tests
+   - Test different configurations
+   - Validate error handling
+   - Test process management
 
 ## Active Decisions
 
-1. Build Prerequisites:
-   - Minimum Go version set to 1.22+
-   - VS2022 Build Tools preferred over full VS installation
-   - PowerShell 7 recommended but not required
-   - protoc auto-downloaded when needed
+1. HWiNFO Integration:
+   - Use retry mechanism for shared memory access
+   - Validate signatures before data access
+   - Monitor process state
+   - Clean up resources properly
+   - Provide detailed error context
 
-2. Development Environment:
-   - Windows-first development approach
-   - Automated toolchain detection and setup
-   - Clear separation of required vs optional components
-   - Robust process management during builds
-
-3. Build System:
-   - Standard target names (`build`, `clean`, `release`)
-   - Self-contained build process without external dependencies
-   - Automatic directory creation for build artifacts
-   - Fail-safe cleanup operations
-   - Process termination before file operations
-   - Silent error handling for non-critical operations
+2. Development Workflow:
+   - Validate environment before builds
+   - Check HWiNFO configuration automatically
+   - Manage process lifecycle during builds
+   - Support both development and release builds
+   - Organize tooling scripts consistently
 
 ## Current Challenges
 
-1. Build Environment:
-   - Visual Studio environment setup complexity
-   - HWiNFO shared memory configuration requirements
-   - Cross-compilation considerations
-   - Process management during builds
+1. User Experience:
+   - Real-time configuration updates
+   - Error message clarity
+   - Configuration persistence
+   - Initialization feedback
 
 2. Documentation:
    - Keeping setup instructions current
    - Balancing detail vs clarity
    - Supporting different VS2022 editions
    - Explaining build process management
+   - Improving HWiNFO setup guidance
 
 ## Notes
 
-- The `check-prerequisites.ps1` script should be run before any build attempts
-- HWiNFO must be properly configured for development testing
-- Visual Studio Build Tools installation might need manual component selection
-- Consider adding version checks to Makefile targets
-- Build process is now self-contained and doesn't require external repositories
-- Build system automatically handles process termination
-- Stream Deck and plugin processes are terminated before builds
+- The plugin now properly handles HWiNFO shared memory access
+- Retry mechanism helps with timing issues during initialization
+- Process monitoring ensures plugin stability
+- Resource cleanup prevents memory leaks
+- Error handling provides better context for troubleshooting
+- Configuration persistence needs to be implemented
+- UI feedback during initialization could be improved
+- Real-time configuration updates would enhance user experience
 
 ---
 
-*Document updated to reflect recent build system improvements, process management, and Makefile changes.*
+*Document updated to reflect HWiNFO integration fixes, process management improvements, and current focus on user experience enhancements.*

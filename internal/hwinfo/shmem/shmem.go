@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"reflect"
 	"syscall"
+	"time"
 	"unsafe"
 
 	"github.com/shayne/hwinfo-streamdeck/internal/hwinfo/mutex"
@@ -42,26 +43,61 @@ func copyBytes(addr uintptr) []byte {
 	return buf[:fullLen]
 }
 
-// ReadBytes copies bytes from global shared memory
+// ReadBytes copies bytes from global shared memory with retries
 func ReadBytes() ([]byte, error) {
-	err := mutex.Lock()
-	defer mutex.Unlock()
-	if err != nil {
-		return nil, err
+	maxRetries := 5
+	retryDelay := 1 * time.Second
+
+	var lastErr error
+	for i := 0; i < maxRetries; i++ {
+		err := mutex.Lock()
+		if err != nil {
+			lastErr = fmt.Errorf("failed to acquire mutex: %w", err)
+			time.Sleep(retryDelay)
+			continue
+		}
+
+		hnd, err := openFileMapping()
+		if err != nil {
+			mutex.Unlock()
+			lastErr = fmt.Errorf("failed to open file mapping: %w", err)
+			time.Sleep(retryDelay)
+			continue
+		}
+
+		addr, err := mapViewOfFile(hnd)
+		if err != nil {
+			windows.CloseHandle(windows.Handle(unsafe.Pointer(hnd)))
+			mutex.Unlock()
+			lastErr = fmt.Errorf("failed to map view of file: %w", err)
+			time.Sleep(retryDelay)
+			continue
+		}
+
+		// Check if the shared memory is initialized
+		var d []byte
+		dh := (*reflect.SliceHeader)(unsafe.Pointer(&d))
+		dh.Data = addr
+		dh.Len, dh.Cap = C.sizeof_HWiNFO_SENSORS_SHARED_MEM2, C.sizeof_HWiNFO_SENSORS_SHARED_MEM2
+		cheader := C.PHWiNFO_SENSORS_SHARED_MEM2(unsafe.Pointer(&d[0]))
+
+		if cheader.dwSignature != 0x53695748 { // "HWiS"
+			unmapViewOfFile(addr)
+			windows.CloseHandle(windows.Handle(unsafe.Pointer(hnd)))
+			mutex.Unlock()
+			lastErr = fmt.Errorf("invalid shared memory signature: 0x%x", cheader.dwSignature)
+			time.Sleep(retryDelay)
+			continue
+		}
+
+		data := copyBytes(addr)
+		unmapViewOfFile(addr)
+		windows.CloseHandle(windows.Handle(unsafe.Pointer(hnd)))
+		mutex.Unlock()
+		return data, nil
 	}
 
-	hnd, err := openFileMapping()
-	if err != nil {
-		return nil, err
-	}
-	addr, err := mapViewOfFile(hnd)
-	if err != nil {
-		return nil, err
-	}
-	defer unmapViewOfFile(addr)
-	defer windows.CloseHandle(windows.Handle(unsafe.Pointer(hnd)))
-
-	return copyBytes(addr), nil
+	return nil, fmt.Errorf("failed to read shared memory after %d retries: %v", maxRetries, lastErr)
 }
 
 func openFileMapping() (C.HANDLE, error) {

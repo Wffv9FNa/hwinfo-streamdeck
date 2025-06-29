@@ -4,21 +4,21 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"os"
 	"os/exec"
 	"strconv"
 	"time"
 
 	"github.com/hashicorp/go-plugin"
-	"github.com/shayne/go-winpeg"
-	"github.com/shayne/hwinfo-streamdeck/pkg/graph"
 	hwsensorsservice "github.com/shayne/hwinfo-streamdeck/pkg/service"
+	"github.com/shayne/hwinfo-streamdeck/pkg/graph"
 	"github.com/shayne/hwinfo-streamdeck/pkg/streamdeck"
 )
 
 // Plugin handles information between HWiNFO and Stream Deck
 type Plugin struct {
 	c      *plugin.Client
-	peg    winpeg.ProcessExitGroup
+	cmd    *exec.Cmd
 	hw     hwsensorsservice.HardwareService
 	sd     *streamdeck.StreamDeck
 	am     *actionManager
@@ -29,39 +29,30 @@ type Plugin struct {
 
 func (p *Plugin) startClient() error {
 	cmd := exec.Command("./hwinfo-plugin.exe")
+	p.cmd = cmd
 
 	// We're a host. Start by launching the plugin process.
 	client := plugin.NewClient(&plugin.ClientConfig{
 		HandshakeConfig:  hwsensorsservice.Handshake,
 		Plugins:          hwsensorsservice.PluginMap,
-		Cmd:              cmd,
+		Cmd:             cmd,
 		AllowedProtocols: []plugin.Protocol{plugin.ProtocolGRPC},
-		AutoMTLS:         true,
+		AutoMTLS:        true,
 	})
 
 	// Connect via RPC
 	rpcClient, err := client.Client()
 	if err != nil {
-		return err
-	}
-
-	g, err := winpeg.NewProcessExitGroup()
-	if err != nil {
-		return err
-	}
-
-	if err := g.AddProcess(cmd.Process); err != nil {
-		return err
+		return fmt.Errorf("failed to connect to plugin: %w", err)
 	}
 
 	// Request the plugin
 	raw, err := rpcClient.Dispense("hwinfoplugin")
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to dispense plugin: %w", err)
 	}
 
 	p.c = client
-	p.peg = g
 	p.hw = raw.(hwsensorsservice.HardwareService)
 
 	return nil
@@ -69,13 +60,18 @@ func (p *Plugin) startClient() error {
 
 // NewPlugin creates an instance and initializes the plugin
 func NewPlugin(port, uuid, event, info string) (*Plugin, error) {
-	// We don't want to see the plugin logs.
-	// log.SetOutput(ioutil.Discard)
+	// Enable logging for debugging
+	log.SetOutput(os.Stderr)
+
 	p := &Plugin{
 		am:     newActionManager(),
 		graphs: make(map[string]*graph.Graph),
 	}
-	p.startClient()
+
+	if err := p.startClient(); err != nil {
+		return nil, fmt.Errorf("failed to start plugin: %w", err)
+	}
+
 	p.sd = streamdeck.NewStreamDeck(port, uuid, event, info)
 	return p, nil
 }
@@ -83,8 +79,9 @@ func NewPlugin(port, uuid, event, info string) (*Plugin, error) {
 // RunForever starts the plugin and waits for events, indefinitely
 func (p *Plugin) RunForever() error {
 	defer func() {
-		p.c.Kill()
-		p.peg.Dispose()
+		if p.c != nil {
+			p.c.Kill()
+		}
 	}()
 
 	p.sd.SetDelegate(p)
@@ -92,8 +89,11 @@ func (p *Plugin) RunForever() error {
 
 	go func() {
 		for {
-			if p.c.Exited() {
-				p.startClient()
+			if p.c != nil && p.c.Exited() {
+				log.Println("Plugin process exited, attempting to restart...")
+				if err := p.startClient(); err != nil {
+					log.Printf("Failed to restart plugin: %v\n", err)
+				}
 			}
 			time.Sleep(1 * time.Second)
 		}
