@@ -122,35 +122,133 @@ func (p *Plugin) getReading(suid string, rid int32) (hwsensorsservice.Reading, e
 	return nil, fmt.Errorf("ReadingID does not exist: %s", suid)
 }
 
+// formatWithThousands adds thousands separator to a number string
+func formatWithThousands(numStr string) string {
+	parts := strings.Split(numStr, ".")
+	intPart := parts[0]
+
+	// Handle negative numbers
+	sign := ""
+	if strings.HasPrefix(intPart, "-") {
+		sign = "-"
+		intPart = strings.TrimPrefix(intPart, "-")
+	}
+
+	// Add commas
+	var result strings.Builder
+	n := len(intPart)
+	for i := 0; i < n; i++ {
+		if i > 0 && (n-i)%3 == 0 {
+			result.WriteRune(',')
+		}
+		result.WriteByte(intPart[i])
+	}
+
+	// Add back the decimal part if it exists
+	if len(parts) > 1 {
+		result.WriteRune('.')
+		result.WriteString(parts[1])
+	}
+
+	return sign + result.String()
+}
+
 func (p *Plugin) applyDefaultFormat(v float64, t hwsensorsservice.ReadingType, u string) string {
+	// First format the number using standard formatting
+	var numStr string
 	switch t {
 	case hwsensorsservice.ReadingTypeNone:
-		return fmt.Sprintf("%0.f %s", v, u)
+		numStr = fmt.Sprintf("%.0f", v)
 	case hwsensorsservice.ReadingTypeTemp:
-		// For temperature readings, use a hardcoded UTF-8 degree symbol
-		if strings.Contains(u, "C") {
-			return fmt.Sprintf("%.0f °C", v)
-		} else if strings.Contains(u, "F") {
-			return fmt.Sprintf("%.0f °F", v)
-		}
-		// Fallback to Celsius if unit is unclear
-		return fmt.Sprintf("%.0f °C", v)
+		numStr = fmt.Sprintf("%.0f", v)
 	case hwsensorsservice.ReadingTypeVolt:
-		return fmt.Sprintf("%.0f %s", v, u)
+		numStr = fmt.Sprintf("%.0f", v)
 	case hwsensorsservice.ReadingTypeFan:
-		return fmt.Sprintf("%.0f %s", v, u)
+		numStr = fmt.Sprintf("%.0f", v)
 	case hwsensorsservice.ReadingTypeCurrent:
-		return fmt.Sprintf("%.0f %s", v, u)
+		numStr = fmt.Sprintf("%.0f", v)
 	case hwsensorsservice.ReadingTypePower:
-		return fmt.Sprintf("%0.f %s", v, u)
+		numStr = fmt.Sprintf("%.0f", v)
 	case hwsensorsservice.ReadingTypeClock:
-		return fmt.Sprintf("%.0f %s", v, u)
+		numStr = fmt.Sprintf("%.0f", v)
 	case hwsensorsservice.ReadingTypeUsage:
-		return fmt.Sprintf("%.0f%s", v, u)
+		numStr = fmt.Sprintf("%.0f", v)
 	case hwsensorsservice.ReadingTypeOther:
-		return fmt.Sprintf("%.0f %s", v, u)
+		numStr = fmt.Sprintf("%.0f", v)
+	default:
+		return "Bad Format"
 	}
-	return "Bad Format"
+
+	// Add units based on reading type
+	switch t {
+	case hwsensorsservice.ReadingTypeTemp:
+		if strings.Contains(u, "C") {
+			return numStr + " °C"
+		} else if strings.Contains(u, "F") {
+			return numStr + " °F"
+		}
+		return numStr + " °C" // Fallback to Celsius
+	case hwsensorsservice.ReadingTypeUsage:
+		return numStr + u
+	default:
+		if u != "" {
+			return numStr + " " + u
+		}
+		return numStr
+	}
+}
+
+// handleFormatString processes custom format strings, supporting %,f for thousands separator
+func (p *Plugin) handleFormatString(format string, v float64, t hwsensorsservice.ReadingType, u string) string {
+	// Check if the format contains our special thousands separator verb
+	if strings.Contains(format, "%,") {
+		// Replace %,f or %,d with regular %f and apply thousands separator after
+		format = strings.NewReplacer("%,f", "%f", "%,d", "%.0f").Replace(format)
+		numStr := fmt.Sprintf(format, v)
+		numStr = formatWithThousands(numStr)
+
+		// If the format string doesn't already include the unit, append it
+		if !strings.Contains(format, u) {
+			switch t {
+			case hwsensorsservice.ReadingTypeTemp:
+				if strings.Contains(u, "C") {
+					return numStr + " °C"
+				} else if strings.Contains(u, "F") {
+					return numStr + " °F"
+				}
+				return numStr + " °C" // Fallback to Celsius
+			case hwsensorsservice.ReadingTypeUsage:
+				return numStr + u
+			default:
+				if u != "" {
+					return numStr + " " + u
+				}
+			}
+		}
+		return numStr
+	}
+
+	// Regular formatting
+	numStr := fmt.Sprintf(format, v)
+	// If the format string doesn't already include the unit, append it
+	if !strings.Contains(format, u) {
+		switch t {
+		case hwsensorsservice.ReadingTypeTemp:
+			if strings.Contains(u, "C") {
+				return numStr + " °C"
+			} else if strings.Contains(u, "F") {
+				return numStr + " °F"
+			}
+			return numStr + " °C" // Fallback to Celsius
+		case hwsensorsservice.ReadingTypeUsage:
+			return numStr + u
+		default:
+			if u != "" {
+				return numStr + " " + u
+			}
+		}
+	}
+	return numStr
 }
 
 func (p *Plugin) updateTiles(data *actionData) {
@@ -219,7 +317,7 @@ func (p *Plugin) updateTiles(data *actionData) {
 	g.Update(v)
 	var text string
 	if f := s.Format; f != "" {
-		text = fmt.Sprintf(f, v)
+		text = p.handleFormatString(f, v, hwsensorsservice.ReadingType(r.TypeI()), r.Unit())
 	} else {
 		text = p.applyDefaultFormat(v, hwsensorsservice.ReadingType(r.TypeI()), r.Unit())
 	}

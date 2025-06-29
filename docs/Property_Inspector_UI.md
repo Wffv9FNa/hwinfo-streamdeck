@@ -32,6 +32,21 @@ com.exension.hwinfo.sdPlugin/
 * Show a warning banner when HWiNFO is not running.
 * Validate format strings client-side.
 
+## Format String Reference
+
+The format string field supports standard Go format specifiers plus some custom extensions:
+
+* `%f` - Format as floating point (e.g., "123.45")
+* `%d` - Format as integer (e.g., "123")
+* `%.2f` - Format with 2 decimal places (e.g., "123.45")
+* `%,f` - Format with thousand separators (e.g., "1,234.56")
+* `%,d` - Format as integer with thousand separators (e.g., "1,234")
+
+Examples:
+* `%.1f °C` -> "23.4 °C"
+* `%,d RPM` -> "1,234 RPM"
+* `%,.2f V` -> "1,234.56 V"
+
 ---
 
 > **TODO**: Include screenshots and CSS class reference.
