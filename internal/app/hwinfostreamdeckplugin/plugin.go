@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/exec"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/go-plugin"
@@ -126,7 +127,14 @@ func (p *Plugin) applyDefaultFormat(v float64, t hwsensorsservice.ReadingType, u
 	case hwsensorsservice.ReadingTypeNone:
 		return fmt.Sprintf("%0.f %s", v, u)
 	case hwsensorsservice.ReadingTypeTemp:
-		return fmt.Sprintf("%.0f %s", v, u)
+		// For temperature readings, use a hardcoded UTF-8 degree symbol
+		if strings.Contains(u, "C") {
+			return fmt.Sprintf("%.0f °C", v)
+		} else if strings.Contains(u, "F") {
+			return fmt.Sprintf("%.0f °F", v)
+		}
+		// Fallback to Celsius if unit is unclear
+		return fmt.Sprintf("%.0f °C", v)
 	case hwsensorsservice.ReadingTypeVolt:
 		return fmt.Sprintf("%.0f %s", v, u)
 	case hwsensorsservice.ReadingTypeFan:
