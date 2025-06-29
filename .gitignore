@@ -33,4 +33,5 @@ cmd/hwinfostreamdeckplugin/debug
 
 # Development scratch files
 dev/
-memory-bank/
+memory-bank/aaas
+.cursor/
