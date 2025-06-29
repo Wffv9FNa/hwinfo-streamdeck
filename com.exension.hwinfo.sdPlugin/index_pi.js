@@ -105,12 +105,14 @@ function connectElgatoStreamDeckSocket(inPort, inUUID, inRegisterEvent, inInfo, 
         document.querySelector("#valuetext").value = settings.valueTextColor;
       }
       if (settings.titleFontSize !== "") {
-        document.querySelector("#titleFontSize input").value =
-          settings.titleFontSize || 10.5;
+        const titleInput = document.querySelector("#titleFontSize input");
+        titleInput.value = settings.titleFontSize || 10.5;
+        titleInput.parentElement.querySelector('.current-value').textContent = 'Current: ' + titleInput.value;
       }
       if (settings.valueFontSize !== "") {
-        document.querySelector("#valueFontSize input").value =
-          settings.valueFontSize || 10.5;
+        const valueInput = document.querySelector("#valueFontSize input");
+        valueInput.value = settings.valueFontSize || 10.5;
+        valueInput.parentElement.querySelector('.current-value').textContent = 'Current: ' + valueInput.value;
       }
     }
   };
@@ -197,6 +199,15 @@ function addReadings(el, readings, settings) {
 
 function initPropertyInspector(initDelay) {
   prepareDOMElements(document);
+
+  // Add event listeners for font size sliders
+  document.querySelector('#titleFontSize input[type="range"]').addEventListener('input', function (e) {
+    e.target.parentElement.querySelector('.current-value').textContent = 'Current: ' + e.target.value;
+  });
+
+  document.querySelector('#valueFontSize input[type="range"]').addEventListener('input', function (e) {
+    e.target.parentElement.querySelector('.current-value').textContent = 'Current: ' + e.target.value;
+  });
 }
 
 function revealSdpiWrapper() {
