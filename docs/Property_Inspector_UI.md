@@ -41,11 +41,13 @@ The format string field supports standard Go format specifiers plus some custom 
 * `%.2f` - Format with 2 decimal places (e.g., "123.45")
 * `%,f` - Format with thousand separators (e.g., "1,234.56")
 * `%,d` - Format as integer with thousand separators (e.g., "1,234")
+* `%b` - Format as boolean text (0 → "NO", 1 → "YES")
 
 Examples:
 * `%.1f °C` -> "23.4 °C"
 * `%,d RPM` -> "1,234 RPM"
 * `%,.2f V` -> "1,234.56 V"
+* `%b` -> "YES" (for value = 1)
 
 ---
 

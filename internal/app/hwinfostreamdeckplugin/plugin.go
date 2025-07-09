@@ -153,6 +153,18 @@ func formatWithThousands(numStr string) string {
 	return sign + result.String()
 }
 
+// formatAsBoolean converts 0/1 values to NO/YES strings
+func formatAsBoolean(v float64) string {
+	switch int(v) {
+	case 0:
+		return "NO"
+	case 1:
+		return "YES"
+	default:
+		return fmt.Sprintf("%.0f", v) // fallback to number for non-boolean values
+	}
+}
+
 func (p *Plugin) applyDefaultFormat(v float64, t hwsensorsservice.ReadingType, u string) string {
 	// First format the number using standard formatting
 	var numStr string
@@ -200,6 +212,12 @@ func (p *Plugin) applyDefaultFormat(v float64, t hwsensorsservice.ReadingType, u
 
 // handleFormatString processes custom format strings, supporting %,f for thousands separator
 func (p *Plugin) handleFormatString(format string, v float64, t hwsensorsservice.ReadingType, u string) string {
+	// Check if the format contains our boolean verb
+	if strings.Contains(format, "%b") {
+		// For boolean format, we don't append units since the words convey meaning
+		return formatAsBoolean(v)
+	}
+
 	// Check if the format contains our special thousands separator verb
 	if strings.Contains(format, "%,") {
 		// Replace %,f or %,d with regular %f and apply thousands separator after
