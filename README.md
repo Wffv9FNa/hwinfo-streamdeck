@@ -1,6 +1,14 @@
+# ✨ Fork Changes
+
+- Format boolean values (0/1) as YES/NO using %b in the format string
+- Use %t in format string to add thousands separators (e.g., "1,234" instead of "1234")
+- Improved handling degree symbol (°) with proper UTF-8 and ISO8859-1 encoding support
+
+---
+
 # HWiNFO Stream Deck Plugin
 
-## ⚠⚠ Major refactor landed in pre-release v2.0.0, plugin code open sourced, remote monitoring infrastructure support ⚠⚠ 
+## ⚠⚠ Major refactor landed in pre-release v2.0.0, plugin code open sourced, remote monitoring infrastructure support ⚠⚠
 
 ---
 
@@ -16,7 +24,7 @@
 
 ![alt text](images/demo.gif "HWiNFO64 Stream Deck Plugin Demo")
 
-> NOTICE: HWiNFO64 must be run in Sensors-only mode for the plugin to work. 
+> NOTICE: HWiNFO64 must be run in Sensors-only mode for the plugin to work.
 
 ## Enabling Support in HWiNFO64
 
