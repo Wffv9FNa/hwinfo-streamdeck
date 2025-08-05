@@ -2,6 +2,7 @@
 
 - Format boolean values (0/1) as YES/NO using %b in the format string
 - Use %t in format string to add thousands separators (e.g., "1,234" instead of "1234")
+- Use %u in format string for dynamic unit conversion (e.g., "1.5 GB/s" instead of "1500 MB/s")
 - Improved handling degree symbol (°) with proper UTF-8 and ISO8859-1 encoding support
 
 ---

@@ -165,6 +165,72 @@ func formatAsBoolean(v float64) string {
 	}
 }
 
+// formatWithDynamicUnits converts values to appropriate units based on magnitude
+func formatWithDynamicUnits(v float64, unit string) (float64, string) {
+	// Handle common data transfer units (KB/s, MB/s, GB/s, etc.)
+	if strings.Contains(unit, "/s") {
+		baseUnit := strings.TrimSuffix(unit, "/s")
+		switch baseUnit {
+		case "B":
+			if v >= 1024*1024*1024 {
+				return v / (1024 * 1024 * 1024), "GB/s"
+			} else if v >= 1024*1024 {
+				return v / (1024 * 1024), "MB/s"
+			} else if v >= 1024 {
+				return v / 1024, "KB/s"
+			}
+			return v, "B/s"
+		case "KB":
+			if v >= 1024*1024 {
+				return v / (1024 * 1024), "GB/s"
+			} else if v >= 1024 {
+				return v / 1024, "MB/s"
+			}
+			return v, "KB/s"
+		case "MB":
+			if v >= 1024 {
+				return v / 1024, "GB/s"
+			}
+			return v, "MB/s"
+		case "GB":
+			return v, "GB/s"
+		}
+	}
+
+	// Handle storage units (B, KB, MB, GB, etc.)
+	if strings.Contains(unit, "B") && !strings.Contains(unit, "/s") {
+		baseUnit := unit
+		switch baseUnit {
+		case "B":
+			if v >= 1024*1024*1024 {
+				return v / (1024 * 1024 * 1024), "GB"
+			} else if v >= 1024*1024 {
+				return v / (1024 * 1024), "MB"
+			} else if v >= 1024 {
+				return v / 1024, "KB"
+			}
+			return v, "B"
+		case "KB":
+			if v >= 1024*1024 {
+				return v / (1024 * 1024), "GB"
+			} else if v >= 1024 {
+				return v / 1024, "MB"
+			}
+			return v, "KB"
+		case "MB":
+			if v >= 1024 {
+				return v / 1024, "GB"
+			}
+			return v, "MB"
+		case "GB":
+			return v, "GB"
+		}
+	}
+
+	// Return original value and unit if no conversion applies
+	return v, unit
+}
+
 func (p *Plugin) applyDefaultFormat(v float64, t hwsensorsservice.ReadingType, u string) string {
 	// First format the number using standard formatting
 	var numStr string
@@ -240,6 +306,39 @@ func (p *Plugin) handleFormatString(format string, v float64, t hwsensorsservice
 			default:
 				if u != "" {
 					return numStr + " " + u
+				}
+			}
+		}
+		return numStr
+	}
+
+	// Check if the format contains our dynamic unit conversion verb
+	if strings.Contains(format, "%u") {
+		// Apply dynamic unit conversion first
+		convertedValue, convertedUnit := v, u
+		if u != "" {
+			convertedValue, convertedUnit = formatWithDynamicUnits(v, u)
+		}
+
+		// Replace %u with the converted unit for formatting
+		format = strings.NewReplacer("%u", convertedUnit).Replace(format)
+		numStr := fmt.Sprintf(format, convertedValue)
+
+		// If the format string doesn't already include the unit, append it
+		if !strings.Contains(format, convertedUnit) {
+			switch t {
+			case hwsensorsservice.ReadingTypeTemp:
+				if strings.Contains(convertedUnit, "C") {
+					return numStr + " °C"
+				} else if strings.Contains(convertedUnit, "F") {
+					return numStr + " °F"
+				}
+				return numStr + " °C" // Fallback to Celsius
+			case hwsensorsservice.ReadingTypeUsage:
+				return numStr + convertedUnit
+			default:
+				if convertedUnit != "" {
+					return numStr + " " + convertedUnit
 				}
 			}
 		}
