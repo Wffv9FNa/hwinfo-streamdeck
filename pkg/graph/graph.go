@@ -24,6 +24,8 @@ type Label struct {
 	y        uint
 	fontSize float64
 	clr      *color.RGBA
+	strokeClr *color.RGBA
+	strokeSize float64
 }
 
 // Graph is used to display a histogram of data passed to Update
@@ -191,6 +193,26 @@ func (g *Graph) SetLabelColor(key int, clr *color.RGBA) error {
 	return nil
 }
 
+// SetLabelStrokeColor given a key and color, sets the stroke color of the text
+func (g *Graph) SetLabelStrokeColor(key int, clr *color.RGBA) error {
+	l, ok := g.labels[key]
+	if !ok {
+		return fmt.Errorf("Label with key (%d) does not exist", key)
+	}
+	l.strokeClr = clr
+	return nil
+}
+
+// SetLabelStrokeSize given a key and size, sets the stroke size of the text
+func (g *Graph) SetLabelStrokeSize(key int, size float64) error {
+	l, ok := g.labels[key]
+	if !ok {
+		return fmt.Errorf("Label with key (%d) does not exist", key)
+	}
+	l.strokeSize = size
+	return nil
+}
+
 func (g *Graph) drawGraph(x, vay, maxx int) {
 	var clr *color.RGBA
 	for ; x <= maxx; x++ {
@@ -315,6 +337,44 @@ func (g *Graph) drawLabel(l *Label) {
 		lx := (float64(g.width) / 2.) - (lwidth / 2.)
 		point := fixed.Point26_6{X: fixed.Int26_6(lx * 64), Y: fixed.Int26_6(curY * 64)}
 
+		// Draw stroke if stroke color is set
+		if l.strokeClr != nil && l.strokeSize > 0 {
+			// Generate stroke offsets based on stroke size
+			var strokeOffsets []fixed.Point26_6
+
+			// Create a more complete stroke pattern based on size
+			for i := -int(l.strokeSize); i <= int(l.strokeSize); i++ {
+				for j := -int(l.strokeSize); j <= int(l.strokeSize); j++ {
+					// Skip the center pixel (the main text)
+					if i == 0 && j == 0 {
+						continue
+					}
+					// Only add pixels within the stroke radius
+					if float64(i*i+j*j) <= l.strokeSize*l.strokeSize {
+						strokeOffsets = append(strokeOffsets, fixed.Point26_6{
+							X: fixed.Int26_6(i * 64),
+							Y: fixed.Int26_6(j * 64),
+						})
+					}
+				}
+			}
+
+			for _, offset := range strokeOffsets {
+				strokePoint := fixed.Point26_6{
+					X: point.X + offset.X,
+					Y: point.Y + offset.Y,
+				}
+				strokeDrawer := &font.Drawer{
+					Dst:  g.img,
+					Src:  image.NewUniform(l.strokeClr),
+					Face: face,
+					Dot:  strokePoint,
+				}
+				strokeDrawer.DrawString(line)
+			}
+		}
+
+		// Draw main text
 		d := &font.Drawer{
 			Dst:  g.img,
 			Src:  image.NewUniform(l.clr),

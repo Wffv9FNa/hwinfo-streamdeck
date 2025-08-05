@@ -65,11 +65,26 @@ func (p *Plugin) OnWillAppear(event *streamdeck.EvWillAppear) {
 	} else {
 		vtColor = hexToRGBA(settings.ValueTextColor)
 	}
+	var vtStrokeColor *color.RGBA
+	if settings.ValueTextStrokeColor == "" {
+		vtStrokeColor = &color.RGBA{0, 0, 0, 255} // Default black stroke
+	} else {
+		vtStrokeColor = hexToRGBA(settings.ValueTextStrokeColor)
+	}
+
+	// Set default stroke size if not already set
+	vtStrokeSize := settings.ValueTextStrokeSize
+	if vtStrokeSize == 0 {
+		vtStrokeSize = 1.0 // Default stroke size
+	}
+
 	g := graph.NewGraph(tileWidth, tileHeight, settings.Min, settings.Max, fgColor, bgColor, hlColor)
 	g.SetLabel(0, "", 19, tColor)
 	g.SetLabelFontSize(0, tfSize)
 	g.SetLabel(1, "", 44, vtColor)
 	g.SetLabelFontSize(1, vfSize)
+	g.SetLabelStrokeColor(1, vtStrokeColor)
+	g.SetLabelStrokeSize(1, vtStrokeSize)
 	p.graphs[event.Context] = g
 	p.am.SetAction(event.Action, event.Context, &settings)
 }

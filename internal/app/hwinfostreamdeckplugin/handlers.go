@@ -225,6 +225,12 @@ func (p *Plugin) handleColorChange(event *streamdeck.EvSendToPlugin, key string,
 	case "valuetext":
 		settings.ValueTextColor = hex
 		g.SetLabelColor(1, clr)
+	case "valuetextstroke":
+		settings.ValueTextStrokeColor = hex
+		g.SetLabelStrokeColor(1, clr)
+	case "valueTextStrokeSize":
+		// This will be handled by handleSetFontSize
+		return p.handleSetFontSize(event, key, sdpi)
 	}
 	err = p.sd.SetSettings(event.Context, &settings)
 	if err != nil {
@@ -258,6 +264,9 @@ func (p *Plugin) handleSetFontSize(event *streamdeck.EvSendToPlugin, key string,
 	case "valueFontSize":
 		settings.ValueFontSize = size
 		g.SetLabelFontSize(1, size)
+	case "valueTextStrokeSize":
+		settings.ValueTextStrokeSize = size
+		g.SetLabelStrokeSize(1, size)
 	default:
 		return fmt.Errorf("invalid key: %s", sdpi.Key)
 	}

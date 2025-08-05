@@ -16,6 +16,8 @@ type actionSettings struct {
 	BackgroundColor string  `json:"backgroundColor"`
 	HighlightColor  string  `json:"highlightColor"`
 	ValueTextColor  string  `json:"valueTextColor"`
+	ValueTextStrokeColor string `json:"valueTextStrokeColor"`
+	ValueTextStrokeSize  float64 `json:"valueTextStrokeSize"`
 	InErrorState    bool    `json:"inErrorState"`
 }
 

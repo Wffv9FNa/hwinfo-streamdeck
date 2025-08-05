@@ -155,16 +155,31 @@
 
     <div class="sdpi-heading">Graph Colors</div>
 
-    <div type="color" class="sdpi-item" id="colorselection">
+    <div type="color" class="sdpi-item">
       <div class="sdpi-item-label">Background</div>
       <input type="color" class="sdpi-item-value" id="background" value="#000000" />
-      <div class="sdpi-item-label">Value Text</div>
-      <input type="color" class="sdpi-item-value" id="valuetext" value="#ffffff" />
-    </div>
-
-    <div type="color" class="sdpi-item" id="colorselection">
       <div class="sdpi-item-label">Foreground</div>
       <input type="color" class="sdpi-item-value" id="foreground" value="#005128" />
+    </div>
+
+    <div type="color" class="sdpi-item">
+      <div class="sdpi-item-label">Value Text</div>
+      <input type="color" class="sdpi-item-value" id="valuetext" value="#ffffff" />
+      <div class="sdpi-item-label">Value Text Stroke</div>
+      <input type="color" class="sdpi-item-value" id="valuetextstroke" value="#000000" />
+    </div>
+
+    <div type="range" class="sdpi-item" id="valueTextStrokeSize">
+      <div class="sdpi-item-label">Stroke Size</div>
+      <div class="sdpi-item-value">
+        <span value="0">0</span>
+        <input type="range" min="0" max="5" step="0.5" value="1" list="steplist" />
+        <span value="5">5</span>
+        <div class="current-value" style="text-align: center; margin-top: 4px; font-size: 11px;">Current: 1</div>
+      </div>
+    </div>
+
+    <div type="color" class="sdpi-item">
       <div class="sdpi-item-label">Highlight</div>
       <input type="color" class="sdpi-item-value" id="highlight" value="#009e00" />
     </div>

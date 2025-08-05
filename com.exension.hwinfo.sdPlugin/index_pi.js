@@ -104,6 +104,14 @@ function connectElgatoStreamDeckSocket(inPort, inUUID, inRegisterEvent, inInfo, 
       if (settings.valueTextColor !== "") {
         document.querySelector("#valuetext").value = settings.valueTextColor;
       }
+      if (settings.valueTextStrokeColor !== "") {
+        document.querySelector("#valuetextstroke").value = settings.valueTextStrokeColor;
+      }
+      if (settings.valueTextStrokeSize !== undefined) {
+        const strokeSizeInput = document.querySelector("#valueTextStrokeSize input");
+        strokeSizeInput.value = settings.valueTextStrokeSize || 1;
+        strokeSizeInput.parentElement.querySelector('.current-value').textContent = 'Current: ' + strokeSizeInput.value;
+      }
       if (settings.titleFontSize !== "") {
         const titleInput = document.querySelector("#titleFontSize input");
         titleInput.value = settings.titleFontSize || 10.5;
