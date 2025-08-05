@@ -10,7 +10,7 @@ This folder contains the living documentation for the **HWiNFO Stream Deck Plugi
 | [StreamDeck_SDK_Layer](StreamDeck_SDK_Layer.md) | Abstraction over Elgato Stream Deck WebSocket SDK |
 | [Plugin_Application_Flow](Plugin_Application_Flow.md) | Runtime flow inside the Go plugin application |
 | [GRPC_Service](GRPC_Service.md) | gRPC interface and handshake details |
-| [Property_Inspector_UI](Property_Inspector_UI.md) | Front-end assets for configuration UI |
+| [Property_Inspector_UI](Property_Inspector_UI.md) | Front-end assets for configuration UI and formatting options |
 | [Command_Line_Tools](Command_Line_Tools.md) | CLI utilities in the `cmd/` directory |
 | [Build_and_Packaging](Build_and_Packaging.md) | Building, packaging, and release process |
 | [Testing_and_Benchmarks](Testing_and_Benchmarks.md) | Test strategy and benchmark guidance |

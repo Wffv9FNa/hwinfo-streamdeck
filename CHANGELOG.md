@@ -4,6 +4,9 @@ All notable changes to this project will be documented in this file.
 
 ## [2.1.0] - 2025-01-07
 
+### Requirements
+- Stream Deck Software 6.4 or later (updated from 4.1)
+
 ### Added
 - **Boolean Formatting**: Use `%b` in format string to convert 0/1 values to YES/NO
 - **Thousands Separator**: Use `%t` in format string to add thousands separators (e.g., "1,234" instead of "1234")

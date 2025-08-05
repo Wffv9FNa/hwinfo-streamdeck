@@ -29,14 +29,22 @@ graph TD
 1. **Go Plugin Binary** (`cmd/hwinfo_streamdeck_plugin`)
    - Connects to Stream Deck WebSocket API.
    - Reads HWiNFO shared memory every second.
+   - Applies custom formatting (boolean, thousands separator, dynamic units).
+   - Renders text with configurable stroke effects.
 2. **HWiNFO Subsystem** (`internal/hwinfo/*`)
    - CGo bindings to shared memory + helper structs.
+   - Enhanced degree symbol handling with UTF-8/ISO8859-1 support.
 3. **StreamDeck SDK Layer** (`pkg/streamdeck/*`)
    - Thin wrapper around Elgato messages.
+   - Modern SDK v6.4+ compatibility.
 4. **Application Layer** (`internal/app/hwinfostreamdeckplugin/*`)
    - Manages actions, settings, and tile updates.
+   - Implements custom formatting extensions.
+   - Handles stroke configuration and rendering.
 5. **Front-End Property Inspector** (`com.exension.hwinfo.sdPlugin`)
    - HTML/CSS/JS for per-tile configuration.
+   - Stroke colour and size controls.
+   - Real-time preview of formatting options.
 6. **gRPC Plugin Service** (`pkg/service/*`) *(optional)*
    - Exposes sensor data to other processes.
 

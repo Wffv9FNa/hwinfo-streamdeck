@@ -16,7 +16,8 @@
 
 * Go 1.22
 * Windows SDK (for CGO headers)
-* `streamdeck-plugin` utility (optional helper for bundling)
+* Stream Deck CLI (`@elgato/cli`) for modern packaging
+* Stream Deck Software 6.4+ for plugin compatibility
 
 ## Makefile Targets
 
@@ -51,13 +52,13 @@ GOOS=windows GOARCH=amd64 go build -ldflags="-s -w" -o com.exension.hwinfo.sdPlu
 | `make build` | 1) Compile `hwinfo.exe` (plugin) and `hwinfo-plugin.exe` (gRPC helper) into the `.sdPlugin` folder.<br>2) Optionally copy pre-built helper from sibling repo.<br>3) Runs `install-plugin.bat` which calls Elgato's CLI to install/update the plugin in the local Stream Deck profile. |
 | `make proto` | Regenerate Go gRPC stubs from `*.proto` files using `protoc` cached inside `.cache/protoc/`. |
 | `make debug` | Builds an alternative binary (`cmd/hwinfo_debugger`) and installs it into the bundle for local console debugging. |
-| `make release` | 1) Cleans previous build artifact.<br>2) Calls `DistributionTool.exe` to create the final `com.exension.hwinfo.streamDeckPlugin` file inside `build/`. |
+| `make release` | 1) Cleans previous build artifact.<br>2) Calls `streamdeck pack` to create the final `com.exension.hwinfo.streamDeckPlugin` file inside `build/`. |
 
 Windows users can also run the helper batch scripts directly:
 
 * `install-plugin.bat` – installs/updates the plugin for the current user.
 * `kill-streamdeck.bat` / `start-streamdeck.bat` – restart the Stream Deck process when needed.
-* `make-release.bat` – thin wrapper around Elgato's `DistributionTool.exe` for CI environments that lack `make`.
+* `make-release.bat` – thin wrapper around `streamdeck pack` for CI environments that lack `make`.
 
 ## CI Example (GitHub Actions)
 
@@ -99,7 +100,7 @@ The binary exposes a `Version` string compiled via `-ldflags`:
 go build -ldflags "-X main.Version=$(git describe --tags --always)" -o hwinfo.exe ./cmd/hwinfo_streamdeck_plugin
 ```
 
-The `manifest.json` inside the `.sdPlugin` bundle must also be updated with the same semantic version (`"Version": "1.4.0"`).
+The `manifest.json` inside the `.sdPlugin` bundle must also be updated with the same semantic version (`"Version": "2.1.0"`).
 
 ### Windows code-signing (optional)
 
@@ -110,7 +111,7 @@ signtool sign /fd SHA256 /a /tr http://timestamp.digicert.com /td SHA256 hwinfo.
 signtool sign /fd SHA256 /a /tr http://timestamp.digicert.com /td SHA256 hwinfo-plugin.exe
 ```
 
-After signing, re-run `DistributionTool.exe` so the `.streamDeckPlugin` contains the signed binaries.
+After signing, re-run `streamdeck pack` so the `.streamDeckPlugin` contains the signed binaries.
 
 ---
 

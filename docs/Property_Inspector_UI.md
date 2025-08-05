@@ -34,20 +34,44 @@ com.exension.hwinfo.sdPlugin/
 
 ## Format String Reference
 
-The format string field supports standard Go format specifiers plus some custom extensions:
+The format string field supports standard Go format specifiers plus custom extensions:
 
+### Standard Format Specifiers
 * `%f` - Format as floating point (e.g., "123.45")
 * `%d` - Format as integer (e.g., "123")
 * `%.2f` - Format with 2 decimal places (e.g., "123.45")
-* `%,f` - Format with thousand separators (e.g., "1,234.56")
-* `%,d` - Format as integer with thousand separators (e.g., "1,234")
-* `%b` - Format as boolean text (0 → "NO", 1 → "YES")
 
-Examples:
+### Custom Format Extensions (v2.1.0+)
+* `%t` - Format with thousands separators (e.g., "1,234" instead of "1234")
+* `%b` - Format as boolean text (0 → "NO", 1 → "YES")
+* `%u` - Dynamic unit conversion (e.g., "1.5 GB/s" instead of "1500 MB/s")
+
+### Examples
 * `%.1f °C` -> "23.4 °C"
-* `%,d RPM` -> "1,234 RPM"
-* `%,.2f V` -> "1,234.56 V"
+* `%t RPM` -> "1,234 RPM"
+* `%t V` -> "1,234 V"
 * `%b` -> "YES" (for value = 1)
+* `%u` -> "1.5 GB/s" (for network sensors)
+
+## Value Text Stroke Configuration
+
+The Property Inspector includes controls for customizing the value text stroke:
+
+### Stroke Colour
+- **Location**: Under "Graph Colors" section
+- **Control**: Colour picker for "Value Text Stroke"
+- **Purpose**: Sets the outline colour for value text
+
+### Stroke Size
+- **Location**: Range slider below colour pickers
+- **Range**: 0-5 pixels
+- **Default**: 1 pixel
+- **Purpose**: Controls the thickness of the text outline
+
+### Real-time Preview
+- Changes are applied immediately to show the effect
+- Current value is displayed below the slider
+- Stroke is disabled when size is set to 0
 
 ---
 

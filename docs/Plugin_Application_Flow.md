@@ -25,6 +25,8 @@ type actionSettings struct {
     IsValid bool
     SensorID string
     Format string // e.g. "{{.Value}} °C"
+    ValueTextStrokeColor string // Stroke colour for value text
+    ValueTextStrokeSize float64 // Stroke size (0-5 pixels)
 }
 ```
 
@@ -40,7 +42,11 @@ Settings are persisted by the Stream Deck runtime and delivered back on startup 
 
 ## Periodic Tile Update
 
-`actionManager.Run()` launches a ticker; each tick iterates through actions and calls `updateTiles` with current readings for that sensor.
+`actionManager.Run()` launches a ticker; each tick iterates through actions and calls `updateTiles` with current readings for that sensor. The update process includes:
+
+1. **Format Application**: Apply custom formatting tokens (`%b`, `%t`, `%u`)
+2. **Stroke Rendering**: Apply stroke effects based on user configuration
+3. **Text Rendering**: Draw text with stroke outline if enabled
 
 ## Error Handling
 
